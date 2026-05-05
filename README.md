@@ -114,7 +114,7 @@ aws cloudformation deploy \
 > - 3 instancias EC2 (t3.micro × 1, t3.medium × 2)
 > - Application Load Balancer
 >
-> Recuerda hacer **Delete Stack** en CloudFormation cuando no estés usando la infraestructura para evitar costos innecesarios.
+> Una recomendacino importante es hacer **Delete Stack** en CloudFormation cuando no se este usando la infraestructura para evitar costos innecesarios.
 
 ---
 
