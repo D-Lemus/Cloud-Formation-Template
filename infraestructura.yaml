@@ -1,0 +1,205 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Cascara de Infraestructura para Proyecyo"
+
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: "final-proyect-vpc"
+        
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: "final-proyect-igw"
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC # !Ref sirve para referenciar otros recursos del teemplate
+      InternetGatewayId: !Ref InternetGateway
+
+#SUBNETS
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: "10.0.1.0/24"
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: true # solo true para subnets publicas
+      Tags:
+        - Key: Name
+          Value: "final-proyect-public-subnet"
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: "10.0.2.0/24"
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: "final-proyect-private-subnet-1"
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: "10.0.3.0/24"
+      AvailabilityZone: "us-east-1b"
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: "final-proyect-private-subnet-2"
+  
+#PUBLIC ROUTE TABLES
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: "final-proyect-public-rt"
+  
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway # Le decimos a CloudFormation que no cree esta ruta hasta que el igw no este attached a la VPC
+    Propertires:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: "0.0.0.0/0" # allow all traffic
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRoute
+    
+#PRIVATE ROUTE TABLES
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: "final-proyect-private-rt"
+  
+
+  # No se pueden crear dos en uno :( son dos recursos separados
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable  
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable 
+
+#SECURITY GROUPS
+
+  SecurityGroupLoadBalancer:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security Group para el Load Balancer"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort : 80 # http
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort : 443 # https
+          ToPort: 443
+          CidrIp: '0.0.0.0/0'
+      #By default all Egress traffic is Allowed 
+      Tags:
+        - Key : Name
+          Value: "final-proyect-sg-lb"
+
+  SecurityGroupBastionHost:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: "SG para el Bastion"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key : Name
+          Value: 'final-proyect-sg-bastion'
+
+  SecurityGroupPrivateInstances:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: "SG para las instancias privadas"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref SecurityGroupLoadBalancer
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !Ref SecurityGroupBastionHost
+      Tags:
+        - Key : Name
+          Value: 'final-proyect-sg-instances'
+
+  #INSTANCIAS EC2
+  BastionHost:
+      Type: AWS::EC2::Instance
+      Properties:
+        InstanceType: t3.micro
+        ImageId: "ami-0c02fb55956c7d316" # AMI de Amazon Linux 2
+        SubnetId: !Ref PublicSubnet
+        KeyName: "kiteso3"
+        SecurityGroupIds:
+          - !Ref SecurityGroupBastionHost
+        Tags:
+          - Key: Name
+            Value: "final-proyect-bastion"
+
+  PrivateInstance1:
+      Type: AWS::EC2::Instance
+      Properties:
+        InstanceType: t3.medium
+        ImageId: "ami-0c02fb55956c7d316" # AMI de Amazon Linux 2
+        SubnetId: !Ref PrivateSubnet1
+        KeyName: "kiteso3"
+        SecurityGroupIds:
+          - !Ref SecurityGroupPrivateInstances
+        Tags:
+          - Key: Name
+            Value: "final-proyect-priv-instance1"
+
+  PrivateInstance2:
+      Type: AWS::EC2::Instance
+      Properties:
+        InstanceType: t3.medium
+        ImageId: "ami-0c02fb55956c7d316" # AMI de Amazon Linux 2
+        SubnetId: !Ref PrivateSubnet2
+        KeyName: "kiteso3"
+        SecurityGroupIds:
+          - !Ref SecurityGroupPrivateInstances
+        Tags:
+          - Key: Name
+            Value: "final-proyect-priv-instance2"
+
+  VPCEndpointDynamoDB
