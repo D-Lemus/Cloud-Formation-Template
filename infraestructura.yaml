@@ -39,11 +39,22 @@ Resources:
         - Key: Name
           Value: "final-proyect-public-subnet"
 
-  PrivateSubnet1:
+  PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: "10.0.2.0/24"
+      AvailabilityZone: "us-east-1b"
+      MapPublicIpOnLaunch: true # solo true para subnets publicas
+      Tags:
+        - Key: Name
+          Value: "final-proyect-public-subnet2"
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: "10.0.3.0/24"
       AvailabilityZone: "us-east-1a"
       MapPublicIpOnLaunch: false
       Tags:
@@ -54,7 +65,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: "10.0.3.0/24"
+      CidrBlock: "10.0.4.0/24"
       AvailabilityZone: "us-east-1b"
       MapPublicIpOnLaunch: false
       Tags:
@@ -74,7 +85,7 @@ Resources:
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachGateway # Le decimos a CloudFormation que no cree esta ruta hasta que el igw no este attached a la VPC
-    Propertires:
+    Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: "0.0.0.0/0" # allow all traffic
       GatewayId: !Ref InternetGateway
@@ -83,7 +94,13 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PublicSubnet
-      RouteTableId: !Ref PublicRoute
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
     
 #PRIVATE ROUTE TABLES
 
@@ -238,6 +255,7 @@ Resources:
       Scheme: internet-facing # para que sea accesible desde internet
       Subnets:
         - !Ref PublicSubnet
+        - !Ref PublicSubnet2
       SecurityGroups:
         - !Ref SecurityGroupLoadBalancer
       Tags:
