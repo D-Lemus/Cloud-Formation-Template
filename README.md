@@ -1,6 +1,6 @@
-# ExamPrep MX — Infraestructura AWS
+# Infraestructura AWS
 
-Proyecto de arquitectura en la nube para el simulador de exámenes EXANI-II.
+Proyecto de arquitectura en la nube para el simulador de exámenes de universidad.
 Materia: Arquitectura en la Nube · ITESO · Primavera 2026
 
 **Integrantes**
@@ -12,7 +12,7 @@ Materia: Arquitectura en la Nube · ITESO · Primavera 2026
 
 ## Descripción del Proyecto
 
-ExamPrep MX es una aplicación web de preparación para el examen de admisión universitaria EXANI-II, dirigida a estudiantes de preparatoria en México. La plataforma ofrece hasta 30 preguntas diarias por tema con retroalimentación impulsada por inteligencia artificial.
+Esta Infraestructura es para una aplicación web de preparación para el examen de admisión universitaria, dirigida a estudiantes de preparatoria en México. La vision que tenemos a futuro es que la plataforma ofrezca hasta 30 preguntas diarias por tema con retroalimentación impulsada por inteligencia artificial.
 
 ---
 
