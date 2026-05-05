@@ -202,4 +202,55 @@ Resources:
           - Key: Name
             Value: "final-proyect-priv-instance2"
 
-  VPCEndpointDynamoDB
+  VPCEndpointDynamoDB:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: "com.amazonaws.us-east-1.dynamodb"
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref PrivateRouteTable
+      Tags:
+        - Key: Name
+          Value: "final-proyect-dynamodb-endpoint"
+
+#Load balancer Settings
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: "final-proyect-target-group"
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      TargetType: instance
+      Targets:
+        - Id: !Ref PrivateInstance1
+        - Id: !Ref PrivateInstance2
+      Tags:
+        - Key: Name
+          Value: "final-proyect-tg"
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Scheme: internet-facing # para que sea accesible desde internet
+      Subnets:
+        - !Ref PublicSubnet
+      SecurityGroups:
+        - !Ref SecurityGroupLoadBalancer
+      Tags:
+        - Key: Name
+          Value: "final-proyect-alb"
+
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer #ARN Amazon Resource Name, es un id
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+          
