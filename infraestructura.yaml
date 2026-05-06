@@ -229,9 +229,7 @@ Resources:
       VpcEndpointType: Gateway
       RouteTableIds:
         - !Ref PrivateRouteTable
-      Tags:
-        - Key: Name
-          Value: "final-proyect-dynamodb-endpoint"
+
 
 #Load balancer Settings
 
