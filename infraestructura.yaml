@@ -186,7 +186,7 @@ Resources:
         InstanceType: t3.micro
         ImageId: "ami-0c02fb55956c7d316" # AMI de Amazon Linux 2
         SubnetId: !Ref PublicSubnet
-        KeyName: "kiteso3"
+        KeyName: "vockey"
         SecurityGroupIds:
           - !Ref SecurityGroupBastionHost
         Tags:
@@ -199,7 +199,8 @@ Resources:
         InstanceType: t3.medium
         ImageId: "ami-0c02fb55956c7d316" # AMI de Amazon Linux 2
         SubnetId: !Ref PrivateSubnet1
-        KeyName: "kiteso3"
+        KeyName: "vockey"
+        IamInstanceProfile: "LabInstanceProfile"
         SecurityGroupIds:
           - !Ref SecurityGroupPrivateInstances
         Tags:
@@ -212,7 +213,8 @@ Resources:
         InstanceType: t3.medium
         ImageId: "ami-0c02fb55956c7d316" # AMI de Amazon Linux 2
         SubnetId: !Ref PrivateSubnet2
-        KeyName: "kiteso3"
+        KeyName: "vockey"
+        IamInstanceProfile: "LabInstanceProfile"
         SecurityGroupIds:
           - !Ref SecurityGroupPrivateInstances
         Tags:
